@@ -1,35 +1,27 @@
+import {Args} from "./commands/Args";
+
 require('dotenv').config();
 const nfetch = require('node-fetch');
 const { appendFile } = require('fs/promises');
 
 const yargs = require('yargs/yargs');
-const { hideBin } = require('yargs/helpers');
 
 // set up yargs
-var argv = yargs(hideBin(process.argv))
+var argv: Args = yargs(process.argv.slice(2))
     .usage('USAGE: ts-node weather.ts [city] --options')
     .command({
         command: '$0 [city]',
         desc: 'Retrieves current and forecasted weather data for the named city. For city names' +
-            'with spaces, use dash; i.e. \'San-Antonio\'. If no city is provided, defaults to ' +
-            'the value set in the LOCAL environment variable.',
+            'with spaces, eliminate the space; i.e. \'SanAntonio\'. If no city is provided, ' +
+            'defaults to the value set in the LOCAL environment variable.',
         handler: defaultHandler,
         array: true
     })
-    .option('f', {
-        desc: 'returns temperatures in degrees fahrenheit',
-        alias: 'fahrenheit',
-        conflicts: 'c'
-    })
-    .option('c', {
-        desc: 'returns temperatures in degrees celsius',
-        alias: 'celsius',
-        conflicts: 'f'
-    })
+    .options(require('./commands/Args').args)
     .help()
     .argv;
 
-function defaultHandler(args: any) {
+function defaultHandler(args: Args) {
     argv = args; // one day I'll figure out why I had to do this
     normalizeArgs(argv);
     processCommand();
