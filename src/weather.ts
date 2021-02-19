@@ -5,7 +5,7 @@ const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
 // set up yargs
-const argv = yargs(hideBin(process.argv))
+var argv = yargs(hideBin(process.argv))
     .usage('USAGE: ts-node weather.ts [city] --options')
     .command({
         command: '$0 [city]',
@@ -15,22 +15,34 @@ const argv = yargs(hideBin(process.argv))
         handler: defaultHandler,
         array: true
     })
+    .option('f', {
+        desc: 'returns temperatures in degrees fahrenheit',
+        alias: 'fahrenheit',
+        conflicts: 'c'
+    })
+    .option('c', {
+        desc: 'returns temperatures in degrees celsius',
+        alias: 'celsius',
+        conflicts: 'f'
+    })
     .help()
     .argv;
 
-function defaultHandler(argv: any) {
-    processCommand(argv);
+function defaultHandler(args: any) {
+    argv = args; // one day I'll figure out why I had to do this
+    normalizeArgs(argv);
+    processCommand();
 }
 
-async function processCommand(argv: any) {
-    await getCoords(argv);
-    getWeatherData(argv);
+async function processCommand() {
+    await getCoords();
+    getWeatherData();
 }
 
 // Get city coordinates from Mapquest Geocoding API
-async function getCoords(argv: any) {
+async function getCoords() {
     // build request URL
-    const reqURL = buildURL('geo', argv);
+    const reqURL = buildURL('geo');
 
     // fetch coords
     const settings = { method: 'Get' };
@@ -50,16 +62,16 @@ async function getCoords(argv: any) {
 }
 
 // Get weather data from Open Weather Map API
-function getWeatherData(argv: any) {
+function getWeatherData() {
 
-    const reqURL = buildURL('weather', argv);
+    const reqURL = buildURL('weather');
     const settings = { method: "Get" };
 
     nfetch(reqURL, settings)
         .then((res: any) => res.json())
         .then((json: any) => {
             if(json.cod !== '404') {
-                formatOutput(json, argv);
+                formatOutput(json);
             } else {
                 console.error('WEATHER API ERROR: 404: City \'%s\' not found!', argv.city);
             }
@@ -67,7 +79,7 @@ function getWeatherData(argv: any) {
     });
 }
 
-function buildURL(type: string, argv: any) {
+function buildURL(type: string) {
     if(type === 'geo') {
         let url: string;
         if( process.env.GEOCODING_FORMAT &&
@@ -78,7 +90,7 @@ function buildURL(type: string, argv: any) {
             url = url.replace('${BASE_URL}', process.env.GEOCODING_BASE_URL)
                 .replace('${GEOCODING_KEY}', process.env.GEOCODING_KEY);
 
-            const options = 'location=' + ((argv.city) ? argv.city : process.env.LOCAL);
+            const options = 'location=' + (argv.city);
 
             url = url.replace('${OPTIONS}', options);
 
@@ -101,7 +113,7 @@ function buildURL(type: string, argv: any) {
 
             const options = 'lat=' + argv.lat +
                 '&lon=' + argv.lng +
-                '&units=' + (argv.units ? argv.units : process.env.DEFAULT_UNITS);
+                '&units=' + argv.units;
 
             url = url.replace('${OPTIONS}', options);
 
@@ -114,20 +126,27 @@ function buildURL(type: string, argv: any) {
 }
 
 
-function formatOutput(data: any, argv: any) {
-    console.log('\nWeather CLI\n');
-    console.log('City: %s', (argv.city) ? argv.city : process.env.LOCAL);
-    console.log('\nCURRENT WEATHER')
-    console.log('Temperature: %s deg %s',
+function formatOutput(data: any) {
+    let outputString: string =
+        '\nWeather CLI\n' +
+        'City: %s\n' +
+        '\nCURRENT WEATHER\n' +
+        'Temperature: %s deg %s\n' +
+        'Current conditions: %s\n' +
+        '\nTOMORROW\'S WEATHER\n' +
+        'Temp (Low/High): %s/%s deg %s\n' +
+        'Conditions: %s\n'
+
+    console.log( outputString,
+        argv.city,
         data.current.temp,
-        (argv.units ? argv.units : (process.env.DEFAULT_UNITS==='imperial' ? 'Fahrenheit' : 'Celsius')));
-    console.log('Current conditions: %s', data.current.weather[0].main);
-    console.log('\nTOMORROW\'S WEATHER');
-    console.log('Temp (Low/High): %s/%s deg %s',
+        argv.descriptiveUnit,
+        data.current.weather[0].main,
         data.daily[1].temp.min,
         data.daily[1].temp.max,
-        (argv.units ? argv.units : (process.env.DEFAULT_UNITS==='imperial' ? 'Fahrenheit' : 'Celsius')));
-    console.log('Conditions: %s', data.daily[1].weather[0].main);
+        argv.descriptiveUnit,
+        data.daily[1].weather[0].main)
+
     if (data.alerts) {
         console.log('\nALERTS');
         data.alerts.forEach( (alert: any) => {
@@ -136,4 +155,12 @@ function formatOutput(data: any, argv: any) {
             console.log('\n%s', alert.description);
         })
     }
+}
+
+function normalizeArgs(args: any) {
+    argv.city = ((args.city) ? args.city : process.env.LOCAL);
+    argv.units = ((argv.f || argv.c) ?
+        ((argv.c===true) ? 'metric' : 'imperial') :
+        process.env.DEFAULT_UNITS);
+    argv.descriptiveUnit = (argv.units === 'metric') ? 'Celsius' : 'Fahrenheit';
 }
