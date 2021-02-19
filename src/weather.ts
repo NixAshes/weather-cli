@@ -1,5 +1,6 @@
 require('dotenv').config();
 const nfetch = require('node-fetch');
+const { appendFile } = require('fs/promises');
 
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
@@ -126,35 +127,47 @@ function buildURL(type: string) {
 }
 
 
+function outputToFile(outputString: string) {
+
+    appendFile(argv.outputFile, outputString)
+        .then(() => {
+            console.log(`Forecast information appended to ${argv.outputFile}.`);
+        });
+}
+
 function formatOutput(data: any) {
     let outputString: string =
-        '\nWeather CLI\n' +
-        'City: %s\n' +
+        `\nForecast for: ${argv.date}\n` +
+        `City: ${argv.city}\n` +
         '\nCURRENT WEATHER\n' +
-        'Temperature: %s deg %s\n' +
-        'Current conditions: %s\n' +
+        `Temperature: ${data.current.temp} deg ${argv.descriptiveUnit}\n` +
+        `Current conditions: ${data.current.weather[0].main}\n` +
         '\nTOMORROW\'S WEATHER\n' +
-        'Temp (Low/High): %s/%s deg %s\n' +
-        'Conditions: %s\n'
-
-    console.log( outputString,
-        argv.city,
-        data.current.temp,
-        argv.descriptiveUnit,
-        data.current.weather[0].main,
-        data.daily[1].temp.min,
-        data.daily[1].temp.max,
-        argv.descriptiveUnit,
-        data.daily[1].weather[0].main)
+        `Temp (Low/High): ${data.daily[1].temp.min}/${data.daily[1].temp.max} deg ${argv.descriptiveUnit}\n` +
+        `Conditions: ${data.daily[1].weather[0].main}\n`
 
     if (data.alerts) {
-        console.log('\nALERTS');
+        outputString += '\nALERTS\n';
+        // console.log('\nALERTS');
         data.alerts.forEach( (alert: any) => {
-            console.log('Agency: %s', alert.sender_name);
+            const sender = alert.sender_name;
+            const event = alert.event;
+            const desc = alert.description;
+
+            outputString += `Agency: ${sender}\n`;
+            outputString += `Alert: ${event}\n`;
+            outputString += `\n${desc}\n`;
+            /*console.log('Agency: %s', alert.sender_name);
             console.log('Alert: %s', alert.event);
-            console.log('\n%s', alert.description);
+            console.log('\n%s', alert.description);*/
         })
     }
+
+    outputString += `\n${process.env.OUTPUT_DELINEATOR}\n`;
+
+    console.log( '\nWeather CLI' + outputString);
+    outputToFile(outputString);
+
 }
 
 function normalizeArgs(args: any) {
@@ -163,4 +176,6 @@ function normalizeArgs(args: any) {
         ((argv.c===true) ? 'metric' : 'imperial') :
         process.env.DEFAULT_UNITS);
     argv.descriptiveUnit = (argv.units === 'metric') ? 'Celsius' : 'Fahrenheit';
+    argv.outputFile = `./${process.env.OUTPUT_FILE_PATH}`;
+    argv.date = new Date().toLocaleDateString();
 }
