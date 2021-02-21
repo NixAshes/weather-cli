@@ -10,11 +10,11 @@ const ArgHandler = require('./commands/argHandler');
 // set up yargs
 const argv: Arguments = yargs(process.argv.slice(2))
     .usage('USAGE: ts-node app.ts [city] --options')
-    .command(require('./commands/weather/base-commands').setup())
-    .options(require('./commands/weather/weather-args'))
+    .command(require('./commands/weather').setup())
+    .command(require('./commands/config').setup())
     .config(JSON.parse(fs.readFileSync(process.env.DEV_CONFIG_PATH as string, 'utf-8')))
     .help()
-    .argv;
+    .parse();
 
 ArgHandler.setArgs(argv);
 argv.cmd.processCommand();

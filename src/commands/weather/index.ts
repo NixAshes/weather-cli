@@ -13,23 +13,33 @@ const fs = require('fs');
 const outputs = require('../../outputPaths');
 
 let args: Arguments;
-const defaultCommand = {
+export const weather = {
     name: 'default',
     command: '$0 [city]',
     desc: 'Retrieves current and forecasted weather data for the named city. For city names' +
         'with spaces, eliminate the space; i.e. \'SanAntonio\'. If no city is provided, ' +
         'defaults to the value set in the LOCAL environment variable.',
-    handler: defaultHandler,
-    array: true,
+    builder: {
+        f: { type: 'boolean', alias: 'fahrenheit', conflicts: 'c'},
+        c: { type: 'boolean', alias: 'celsius', conflicts: 'f'},
+        s: { type: 'string', alias: 'state', desc: 'optional flag to set state if needed'},
+        v: { type: 'boolean', alias: 'view', desc: 'display data in specified view'},
+        p: { type: 'string', alias: 'path', requiresArg: 'v', desc: 'path to a JSON file containing a view'}
+    },
+    handler: weatherHandler,
     processCommand: async () => {
         await processCmd()
     }
 }
 
-function defaultHandler(argv: Arguments) {
+export function setup(): Command {
+    return weather;
+}
+
+function weatherHandler(argv: Arguments) {
     ArgHandler.setArgs(argv);
     args = ArgHandler.getInstance().getArgs;
-    args.cmd = defaultCommand;
+    args.cmd = weather;
 
 }
 
@@ -48,10 +58,6 @@ async function processCmd() {
             let path: string = (args.outputFile) ? (args.outputFile as string) : '';
             outputs.toFile.output(path, formattedOutput);
         });
-}
-
-export function setup(): Command {
-    return defaultCommand;
 }
 
 function buildURL(type: string): string {
