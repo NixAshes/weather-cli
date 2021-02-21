@@ -1,0 +1,61 @@
+{
+  "forAPI": "OWM",
+  "view": {
+    "title": "Weather CLI",
+    "header": "\nForecast for ${args.city} on ${args.date}\n",
+    "sections": [
+      {
+        "sectionTitle": "\nCURRENT WEATHER\n",
+        "records": [
+          {
+            "label": "Temperature: ",
+            "dataLocation": "${json.current.temp} ",
+            "tail": "deg ${args.descriptiveUnit}\n"
+          },
+          {
+            "label": "Current conditions: ",
+            "dataLocation": "${json.current.weather[0].main}\n"
+          }
+        ]
+      },
+      {
+        "sectionTitle": "\nTODAY'S WEATHER\n",
+        "records": [
+          {
+            "label": "Low: ",
+            "dataLocation": "${json.daily[0].temp.min} ",
+            "tail": "deg ${args.descriptiveUnit}\n"
+          },
+          {
+            "label": "High: ",
+            "dataLocation": "${json.daily[0].temp.max} ",
+            "tail": "deg ${args.descriptiveUnit}\n"
+          },
+          {
+            "label": "Conditions: ",
+            "dataLocation": "${json.daily[0].weather[0].main}\n"
+          }
+        ]
+      },
+      {
+        "sectionTitle": "\nTOMORROW'S WEATHER\n",
+        "records": [
+          {
+            "label": "Low: ",
+            "dataLocation": "${json.daily[1].temp.min} ",
+            "tail": "deg ${args.descriptiveUnit}\n"
+          },
+          {
+            "label": "High: ",
+            "dataLocation": "${json.daily[1].temp.max} ",
+            "tail": "deg ${args.descriptiveUnit}\n"
+          },
+          {
+            "label": "Conditions: ",
+            "dataLocation": "${json.daily[1].weather[0].main}\n"
+          }
+        ]
+      }
+    ]
+  }
+}

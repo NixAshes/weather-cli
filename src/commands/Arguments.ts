@@ -6,6 +6,8 @@ export interface Arguments {
     command: string,
     f: boolean,
     c: boolean,
-    s: boolean
+    s: boolean,
+    v: boolean,
+    p: string
 }
 

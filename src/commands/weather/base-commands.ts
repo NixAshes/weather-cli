@@ -1,11 +1,15 @@
+import {formatView} from "../../view/view-formatter";
+import {Arguments} from "../Arguments";
 import {Command} from "../Command";
 
 require('dotenv').config();
-import { Arguments } from "../Arguments";
-const ArgHandler = require('../../argHandler')
 
+const ArgHandler = require('../argHandler');
 
 const connect = require('../../connect');
+const viewParser = require("../../view/view-parser");
+const fs = require('fs');
+
 const outputs = require('../../outputPaths');
 
 let args: Arguments;
@@ -18,31 +22,32 @@ const defaultCommand = {
     handler: defaultHandler,
     array: true,
     processCommand: async () => {
-
         await processCmd()
     }
 }
 
-function defaultHandler(argv: Arguments){
+function defaultHandler(argv: Arguments) {
     ArgHandler.setArgs(argv);
     args = ArgHandler.getInstance().getArgs;
     args.cmd = defaultCommand;
 
 }
 
-export async function processCmd() {
-    await connect.getCoords(buildURL('geo')).then( (coords: string[]) => {
-        args.lat = coords[0];
-        args.lng = coords[1];
-    });
+async function processCmd() {
+    await connect.getCoords(buildURL('geo'))
+        .then((coords: string[]) => {
+            args.lat = coords[0];
+            args.lng = coords[1];
+        });
+
     connect.getWeatherData(buildURL('weather'))
-        .then( (data: JSON) => {
+        .then((data: JSON) => {
             const formattedOutput: string = formatOutput(data);
-            outputs.toConsole.output('\nWeather CLI', formattedOutput);
+            outputs.toConsole.output(/*'\nWeather CLI',*/ formattedOutput);
 
             let path: string = (args.outputFile) ? (args.outputFile as string) : '';
             outputs.toFile.output(path, formattedOutput);
-        } );
+        });
 }
 
 export function setup(): Command {
@@ -61,7 +66,7 @@ function buildURL(type: string): string {
             url = url.replace('${BASE_URL}', process.env.GEOCODING_BASE_URL)
                 .replace('${GEOCODING_KEY}', process.env.GEOCODING_KEY);
 
-            const options = 'location=' + (args.city);
+            const options = 'location=' + args.city + ((args.state) ? `,${args.state}` : '');
 
             url = url.replace('${OPTIONS}', options);
 
@@ -94,30 +99,14 @@ function buildURL(type: string): string {
 }
 
 function formatOutput(data: any) {
-    let outputString: string =
-        `\nForecast for: ${args.date}\n` +
-        `City: ${args.city}\n` +
-        '\nCURRENT WEATHER\n' +
-        `Temperature: ${data.current.temp} deg ${args.descriptiveUnit}\n` +
-        `Current conditions: ${data.current.weather[0].main}\n` +
-        '\nTOMORROW\'S WEATHER\n' +
-        `Temp (Low/High): ${data.daily[1].temp.min}/${data.daily[1].temp.max} deg ${args.descriptiveUnit}\n` +
-        `Conditions: ${data.daily[1].weather[0].main}\n`
 
-    if (data.alerts) {
-        outputString += '\nALERTS\n';
-        data.alerts.forEach( (alert: any) => {
-            const sender = alert.sender_name;
-            const event = alert.event;
-            const desc = alert.description;
-
-            outputString += `Agency: ${sender}\n`;
-            outputString += `Alert: ${event}\n`;
-            outputString += `\n${desc}\n`;
-        })
+    const weatherView = require('../../view/weather-view');
+    let outputString;
+    if (!args.v) {
+        outputString = formatView(weatherView(data).view);
+    } else {
+        outputString = viewParser.parseView(fs.readFileSync(args.p as string, "utf-8"), data);
     }
-
-    outputString += `\n${args.output_delineator}\n`;
 
     return outputString;
 

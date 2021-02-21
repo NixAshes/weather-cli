@@ -1,0 +1,6 @@
+{
+  "local": "SanAntonio",
+  "default_units": "imperial",
+  "output_file_path": "weather.txt",
+  "output_delineator": "---------------------------------"
+}
