@@ -117,7 +117,7 @@ function formatOutput(data: any) {
         })
     }
 
-    outputString += `\n${process.env.OUTPUT_DELINEATOR}\n`;
+    outputString += `\n${args.output_delineator}\n`;
 
     return outputString;
 

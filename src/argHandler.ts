@@ -3,10 +3,6 @@ import { Arguments } from "./commands/Arguments";
 export class ArgHandler {
     private args: Arguments;
     private static instance: ArgHandler;
-    config = { LOCAL: 'SanAntonio ',
-    DEFAULT_UNITS: 'imperial', OUTPUT_FILE_PATH: './weather.txt'
-
-    };
 
     private constructor(argv: Arguments ) {
         this.args = argv;
@@ -34,12 +30,12 @@ export class ArgHandler {
     }
 
     private normalizeArgs() {
-        this.args.city = ((this.args.city) ? this.args.city : this.config.LOCAL);
+        this.args.city = ((this.args.city) ? this.args.city : this.args.local);
         this.args.units = ((this.args.f || this.args.c) ?
             (this.args.c ? 'metric' : 'imperial') :
-            this.config.DEFAULT_UNITS);
+            this.args.default_units);
         this.args.descriptiveUnit = (this.args.units === 'metric') ? 'Celsius' : 'Fahrenheit';
-        this.args.outputFile = `./${this.config.OUTPUT_FILE_PATH}`;
+        this.args.outputFile = `./${this.args.output_file_path}`;
         this.args.date = new Date().toLocaleDateString();
     }
 }
