@@ -36,7 +36,7 @@ Run Dependencies | Dev Dependencies
    
 ### Running
 
-**Default mode:**
+#### Default mode:
 
 In the lib folder, run `node app.js`:
 
@@ -44,7 +44,9 @@ In the lib folder, run `node app.js`:
 
 The CLI will present current and tomorrow's weather conditions for the location set in the `local` config variable.
 
-**Provide a city:**
+
+
+#### Provide a city:
 
 You can also run `node app.js Bucharest`:
 
@@ -52,7 +54,9 @@ You can also run `node app.js Bucharest`:
 
 If you need to provide a state or country, you can wrap the whole thing in double quotes, i.e. `"Paris, TX"` or `"Paris TX"`.
 
-**Provide a custom view:**
+
+
+#### Provide a custom view:
 
 From the lib folder, try running `node app.js -vp '../test-view.json'`:
 
@@ -63,6 +67,7 @@ The app will read a .json file provided and attempt to parse it into a view, whi
 Of course, the custom view can be used with any location provided, i.e. `node app.js "New York, NY" -vp '../test-view.json'`:
 
 ![nynycustom.png](docs/images/nynycustom.png)
+
 
 
 ## What's Next
