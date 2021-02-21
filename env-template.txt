@@ -1,0 +1,15 @@
+# API Keys
+GEOCODING_KEY='MAPQUEST API KEY'
+WEATHER_KEY='OPEN WEATHER MAP API KEY'
+
+CONFIG_PATH='./config.json'
+
+# IMPORTANT: DO NOT CHANGE the variables below unless you are implementing a NEW API!
+# The code assumes request URLs have a base component, an API key, and a set of options.
+# If you are implementing an API with different parameters, you will need to alter the
+# buildURL() function.
+
+GEOCODING_BASE_URL='https://www.mapquestapi.com/geocoding/v1/address?key='
+GEOCODING_FORMAT='${BASE_URL}${GEOCODING_KEY}&${OPTIONS}'
+WEATHER_BASE_URL='https://api.openweathermap.org/data/2.5/onecall?'
+WEATHER_FORMAT='${BASE_URL}${OPTIONS}&appid=${WEATHER_KEY}'

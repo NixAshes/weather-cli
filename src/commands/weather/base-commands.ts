@@ -17,8 +17,8 @@ const defaultCommand = {
     name: 'default',
     command: '$0 [city]',
     desc: 'Retrieves current and forecasted weather data for the named city. For city names' +
-        'with spaces, eliminate the space; i.e. \'SanAntonio\'. If no city is provided, ' +
-        'defaults to the value set in the LOCAL environment variable.',
+        'with spaces, surround the name with double quotes, i.e. "San Antonio". If no city ' +
+        'is provided, defaults to the local value the configuration file.',
     handler: defaultHandler,
     array: true,
     processCommand: async () => {
@@ -66,7 +66,7 @@ function buildURL(type: string): string {
             url = url.replace('${BASE_URL}', process.env.GEOCODING_BASE_URL)
                 .replace('${GEOCODING_KEY}', process.env.GEOCODING_KEY);
 
-            const options = 'location=' + args.city + ((args.state) ? `,${args.state}` : '');
+            const options = 'location=' + (args.city as string).replace(' ', '') + ((args.state) ? `,${args.state}` : '');
 
             url = url.replace('${OPTIONS}', options);
 
